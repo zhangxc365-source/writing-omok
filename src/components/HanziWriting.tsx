@@ -337,10 +337,14 @@ export function HanziWriting({ word, onComplete, className, showHint, isReview }
             <div className="absolute inset-0 z-50 bg-white/95 backdrop-blur-md p-4 sm:p-6 flex flex-col items-center justify-center animate-in zoom-in-95 duration-200">
                <RefreshCcw size={32} className={cn("text-amber-500 mb-3", isMissingKey ? "" : "animate-spin-slow")} />
                <h3 className="text-lg font-black text-slate-900 mb-1 uppercase tracking-tight">
-                {isMissingKey ? "Key Required" : apiError ? "AI Error" : "Low Score"}
+                {isMissingKey ? "Key Required" : apiError ? "AI Error / Алдаа" : "Low Score"}
               </h3>
               <p className="text-slate-500 text-[10px] font-bold mb-4 text-center leading-tight max-w-[200px]">
-                {isMissingKey ? "Set GEMINI_API_KEY in Settings" : apiError ? "AI failed. Self-confirm?" : "Low score. Self-confirm?"}
+                {isMissingKey 
+                  ? "Set GEMINI_API_KEY in Settings / Түлхүүр оруулна уу" 
+                  : apiError 
+                  ? "AI failed. Self-confirm? / Сервер ачааллаж байна." 
+                  : "Low score. Self-confirm? / Зөв бичсэн эсэхээ шалгана уу."}
               </p>
               <div className="flex flex-col gap-2 w-full max-w-[180px]">
                 {isMissingKey ? (
@@ -367,8 +371,8 @@ export function HanziWriting({ word, onComplete, className, showHint, isReview }
                   </>
                 ) : (
                   <>
-                    <button onClick={handleManualPass} className="w-full py-3 bg-amber-500 text-white font-black rounded-xl text-[10px] uppercase tracking-widest shadow-lg transition-all">It's Correct!</button>
-                    <button onClick={handleManualFail} className="w-full py-2 bg-white border border-slate-200 text-slate-400 font-bold rounded-xl text-[9px] uppercase tracking-widest transition-all">Rewrite</button>
+                    <button onClick={handleManualPass} className="w-full py-3 bg-amber-500 text-white font-black rounded-xl text-[10px] uppercase tracking-widest shadow-lg transition-all">Correct / Зөв</button>
+                    <button onClick={handleManualFail} className="w-full py-2 bg-white border border-slate-200 text-slate-400 font-bold rounded-xl text-[9px] uppercase tracking-widest transition-all">Rewrite / Буруу</button>
                   </>
                 )}
               </div>
