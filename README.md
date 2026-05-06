@@ -24,23 +24,38 @@ An educational game that combines the classic Omok (Gomoku) board game with Chin
 - **AI Integration**: Google Gemini API
 - **Handwriting**: Hanzi Writer + Custom Drawing Canvas
 
-## Setup
+## GitHub Pages Deployment
 
-1. Clone the repository.
-2. Install dependencies:
+### Automatic Deployment (Recommended)
+This repository includes a GitHub Action that automatically deploys the project to GitHub Pages whenever you push to the `main` branch.
+
+1. Go to your GitHub repository **Settings** > **Secrets and variables** > **Actions**.
+2. Add a **New repository secret**:
+   - Name: `GEMINI_API_KEY`
+   - Value: (Your Google Gemini API Key)
+3. Ensure GitHub Pages is configured to use **GitHub Actions** as the source (Settings > Pages > Build and deployment > Source).
+
+### Local Build & Manual Verification
+If you want to test the production build locally:
+
+1. Install dependencies:
    ```bash
    npm install
    ```
-3. Set up your environment variables:
-   Create a `.env` file based on `.env.example` and add your `GEMINI_API_KEY`.
-4. Run the development server:
+2. Build the project:
    ```bash
-   npm run dev
+   npm run build
+   ```
+3. Verify the `dist/index.html` file. References to assets should now start with `/writing-omok/assets/`.
+4. Preview the production build:
+   ```bash
+   npm run preview
    ```
 
-## Environment Variables
+### Validation Checklist
+- Check console for 404 errors. If found, ensure `base` in `vite.config.ts` matches your repository name.
+- View source in browser: Assets should look like `<script ... src="/writing-omok/assets/index-XXXX.js">`.
 
-- `GEMINI_API_KEY`: Required for AI handwriting evaluation.
 
 ## License
 
