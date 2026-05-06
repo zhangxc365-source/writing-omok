@@ -200,7 +200,7 @@ export function HanziWriting({ word, onComplete, className, showHint, isReview }
       Only return the number.`;
       
       const result = await client.models.generateContent({
-        model: "gemini-1.5-flash",
+        model: "gemini-2.5-flash",
         contents: [
           {
             parts: [
