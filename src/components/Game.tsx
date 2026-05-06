@@ -197,7 +197,7 @@ export function Game() {
         ...prev,
         [p]: {
           ...prev[p],
-          accuracy: [...prev[p].accuracy, aiScore]
+          accuracy: [...prev[p].accuracy, 100] // Success counts as 100% for binary accuracy
         }
       }));
     } else if (pendingMove) {
@@ -209,7 +209,7 @@ export function Game() {
         ...prev,
         [p]: {
           ...prev[p],
-          accuracy: [...prev[p].accuracy, 0]
+          accuracy: [...prev[p].accuracy, 0] // Fail counts as 0% for binary accuracy
         }
       }));
     }

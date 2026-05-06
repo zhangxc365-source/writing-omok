@@ -216,9 +216,11 @@ export function HanziWriting({ word, onComplete, className, showHint, isReview }
         ],
       });
       
-      const responseText = result.text?.trim() || "0";
+      const responseText = result.response.text()?.trim() || "0";
       const aiScore = parseInt(responseText) || 0;
       setScore(aiScore);
+      
+      console.log(`AI Result: Score ${aiScore}, Raw: "${responseText}"`);
       
       if (aiScore >= 70) {
         setIsComplete(true);
@@ -235,7 +237,12 @@ export function HanziWriting({ word, onComplete, className, showHint, isReview }
         }
       }
     } catch (error) {
-      console.error("AI Analysis Error:", error);
+      console.error("DEBUG - AI API Error:", error);
+      if (error instanceof Error) {
+        console.error("Error Message:", error.message);
+        console.error("Error Name:", error.name);
+        console.error("Error Stack:", error.stack);
+      }
       setApiError(true);
       setIsAnalyzing(false);
     }
@@ -243,8 +250,8 @@ export function HanziWriting({ word, onComplete, className, showHint, isReview }
 
   const handleManualPass = () => {
     setIsComplete(true);
-    setScore(85);
-    onComplete(true, 85);
+    setScore(100);
+    onComplete(true, 100);
   };
 
   const handleManualFail = () => {
