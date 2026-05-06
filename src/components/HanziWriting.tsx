@@ -1,9 +1,10 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { WordEntry } from '../data/yct_data';
 import { cn } from '../lib/utils';
-import { RefreshCcw, CheckCircle2, XCircle, Eraser, Lightbulb } from 'lucide-react';
+import { RefreshCcw, CheckCircle2, XCircle, Eraser, Lightbulb, RotateCcw, Play } from 'lucide-react';
 import { GoogleGenAI } from "@google/genai";
 import HanziWriter from 'hanzi-writer';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface HanziWritingProps {
   word: WordEntry;
@@ -24,6 +25,7 @@ export function HanziWriting({ word, onComplete, className, showHint, isReview }
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [score, setScore] = useState<number | null>(null);
   const [apiError, setApiError] = useState(false);
+  const [isMissingKey, setIsMissingKey] = useState(false);
 
   // Analysis Timeout Handler
   useEffect(() => {
@@ -178,10 +180,17 @@ export function HanziWriting({ word, onComplete, className, showHint, isReview }
     setIsAnalyzing(true);
     
     try {
+      const apiKey = process.env.GEMINI_API_KEY;
+      if (!apiKey || apiKey === "MY_GEMINI_API_KEY" || apiKey.includes("MY_")) {
+        setIsMissingKey(true);
+        setIsAnalyzing(false);
+        return;
+      }
+
       const dataUrl = canvas.toDataURL('image/png');
       const base64Data = dataUrl.split(',')[1];
       
-      const client = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
+      const client = new GoogleGenAI({ apiKey });
       
       const prompt = `You are a Chinese handwriting AI teacher. 
       Analyze the handwritten character in the provided image.
@@ -255,173 +264,162 @@ export function HanziWriting({ word, onComplete, className, showHint, isReview }
   };
 
   return (
-    <div className={cn("flex flex-col items-center gap-6 p-8 bg-white rounded-3xl shadow-2xl relative max-w-2xl w-full", className)}>
-      <div className="text-center space-y-4">
-        <div className="flex flex-col items-center gap-2">
-          {/* Main Cue (Pinyin) */}
-          <h3 className="text-6xl sm:text-8xl font-black text-blue-600 tracking-widest drop-shadow-sm mb-2">
+    <div className={cn(
+      "flex flex-col items-center justify-between p-4 sm:p-8 bg-white rounded-3xl shadow-2xl relative w-full",
+      "h-[92dvh] max-h-[850px] max-w-2xl mx-auto overflow-hidden",
+      className
+    )}>
+      {/* 1. Top Section - Context & Info */}
+      <div className="text-center w-full shrink-0">
+        <div className="flex flex-col items-center gap-1 sm:gap-2">
+          <h3 className="text-4xl sm:text-6xl font-black text-blue-600 tracking-tight leading-none mb-1">
             {word.pinyin.toLowerCase()}
           </h3>
-
-          {/* Context / Translation Section */}
-          <div className="space-y-2">
+          
+          <div className="flex flex-col items-center gap-0 sm:gap-1">
             {!isReview ? (
-              <>
-                <p className="text-slate-400 font-bold text-xs uppercase tracking-widest">Context:</p>
-                <p className="text-2xl font-black text-slate-600 tracking-tighter">
-                  {word.word.replace(word.char, '___')} <span className="text-slate-300 font-medium">({word.wordPinyin})</span>
-                </p>
-                <p className="text-slate-500 font-medium italic mt-1">
-                  "{word.translation}"
-                </p>
-              </>
+              <p className="text-lg sm:text-2xl font-black text-slate-600 tracking-tighter">
+                {word.word.replace(word.char, '___')} <span className="text-slate-300 font-medium text-sm sm:text-base">({word.wordPinyin})</span>
+              </p>
             ) : (
-              <h4 className="text-4xl font-black text-slate-400 italic">
+              <h4 className="text-xl sm:text-3xl font-black text-slate-400 italic">
                 "{word.translation}"
               </h4>
             )}
-          </div>
-
-          <p className="text-slate-400 font-bold text-[10px] uppercase tracking-[0.2em] pt-4 opacity-50 flex flex-col items-center gap-1">
-            <span>{isReview ? "Write the character for this pinyin" : "Draw the character"}</span>
-            <span className="text-[9px] opacity-70">Ханзыг бичээрэй</span>
-          </p>
-        </div>
-      </div>
-
-      <div className="relative w-[300px] h-[300px] sm:w-[500px] sm:h-[500px] border-8 border-slate-100 rounded-[2.5rem] overflow-hidden bg-slate-50 shadow-inner group">
-        {/* Hint Layer */}
-        <div ref={hintRef} className="absolute inset-0 pointer-events-none opacity-60 [&>svg]:w-full [&>svg]:h-full" />
-        
-        {/* Drawing Layer */}
-        <canvas
-          ref={canvasRef}
-          width={1000}
-          height={1000}
-          onMouseDown={startDrawing}
-          onMouseMove={draw}
-          onMouseUp={stopDrawing}
-          onMouseLeave={stopDrawing}
-          onTouchStart={startDrawing}
-          onTouchMove={draw}
-          onTouchEnd={stopDrawing}
-          className="absolute inset-0 cursor-crosshair touch-none w-full h-full z-10"
-        />
-        
-        {isAnalyzing && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/60 backdrop-blur-sm z-20">
-            <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
-            <p className="mt-4 font-bold text-blue-600">AI Scoring...</p>
-          </div>
-        )}
-
-        {(apiError || (score !== null && score < 70)) && !isComplete && !isFailed && !isAnalyzing && (
-          <div className="absolute inset-x-8 top-1/2 -translate-y-1/2 flex flex-col items-center justify-center bg-white/95 backdrop-blur-md p-8 rounded-[2rem] shadow-2xl border-2 border-amber-200 z-[30] animate-in zoom-in-95 duration-200 overflow-hidden">
-            <div className="w-16 h-16 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mb-6">
-              <RefreshCcw size={32} className="animate-spin-slow" />
-            </div>
-            <h3 className="text-xl font-black text-slate-900 mb-2 uppercase tracking-tight">
-              {apiError ? "AI Scoring Failed" : "Low Score Detected"}
-            </h3>
-            <p className="text-slate-500 text-sm font-bold mb-8 max-w-[200px] leading-relaxed text-center">
-              {apiError 
-                ? "AI scoring is unstable. Please self-confirm your work."
-                : "AI gave a low score. If you are sure it is correct, self-confirm."}
+            <p className="text-slate-500 font-bold text-xs sm:text-sm italic line-clamp-1">
+              "{word.translation}"
             </p>
-            <div className="flex flex-col gap-3 w-full">
-              <button 
-                onClick={handleManualPass}
-                className="w-full py-4 bg-amber-500 hover:bg-amber-600 text-white font-black rounded-2xl transition-all shadow-lg active:scale-95 text-xs uppercase tracking-widest flex items-center justify-center gap-3"
-              >
-                <span>It is Correct! / Би зөв бичсэн!</span>
-                <div className="w-2 h-2 bg-white rounded-full animate-ping" />
-              </button>
-              <button 
-                onClick={handleManualFail}
-                className="w-full py-3 bg-white border-2 border-slate-200 hover:bg-slate-50 text-slate-400 font-black rounded-2xl transition-all text-[10px] uppercase tracking-widest"
-              >
-                {attempts < 2 ? "I'll Rewrite / Би дахиж бичье" : "It's Incorrect / Би буруу бичсэн"}
-              </button>
-            </div>
           </div>
-        )}
-      </div>
-
-      <div className="flex flex-col items-center gap-4 w-full">
-        <div className="flex gap-2">
-          {[0, 1, 2].map((i) => (
-            <div 
-              key={i} 
-              className={cn(
-                "w-10 h-2 rounded-full transition-all",
-                i < attempts ? "bg-red-500" : "bg-slate-200"
-              )} 
-            />
-          ))}
         </div>
-        <p className="text-base font-black text-slate-400 uppercase tracking-widest">
-          Attempts: {attempts}/3
-        </p>
       </div>
 
-      <div className="flex gap-4 w-full">
+      {/* 2. Middle Section - Writing Square */}
+      <div className="flex-1 w-full flex flex-col items-center justify-center min-h-0 relative py-2">
+        <div 
+          className="relative aspect-square w-full h-auto max-h-full bg-slate-50 rounded-[2rem] border-4 border-slate-100 shadow-inner overflow-hidden"
+          style={{ width: 'min(100%, 500px, calc(92dvh - 300px))' }}
+        >
+          {/* Background Grid */}
+          <div className="absolute inset-0 pointer-events-none opacity-20">
+            <div className="absolute inset-x-0 top-1/2 border-t-2 border-dashed border-red-400" />
+            <div className="absolute inset-y-0 left-1/2 border-l-2 border-dashed border-red-400" />
+            <div className="absolute inset-0 border-2 border-dotted border-red-400 m-6 rounded-lg" />
+          </div>
+
+          {/* HanziWriter Hint Layer */}
+          <div ref={hintRef} className="absolute inset-0 pointer-events-none opacity-60 [&>svg]:w-full [&>svg]:h-full z-0" />
+          
+          {/* Drawing Canvas */}
+          <canvas
+            ref={canvasRef}
+            width={1000}
+            height={1000}
+            className="absolute inset-0 w-full h-full touch-none cursor-crosshair z-10"
+            onMouseDown={startDrawing}
+            onMouseMove={draw}
+            onMouseUp={stopDrawing}
+            onMouseLeave={stopDrawing}
+            onTouchStart={startDrawing}
+            onTouchMove={draw}
+            onTouchEnd={stopDrawing}
+          />
+          
+          {/* Analyzing Overlay */}
+          {isAnalyzing && (
+            <div className="absolute inset-0 z-40 bg-white/60 backdrop-blur-sm flex flex-col items-center justify-center">
+              <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+              <p className="mt-4 font-black text-blue-600 uppercase tracking-widest text-[10px]">AI Scoring...</p>
+            </div>
+          )}
+
+          {/* Status Modal inside square */}
+          {(apiError || (score !== null && score < 70) || isMissingKey) && !isComplete && !isFailed && !isAnalyzing && (
+            <div className="absolute inset-0 z-50 bg-white/95 backdrop-blur-md p-4 sm:p-6 flex flex-col items-center justify-center animate-in zoom-in-95 duration-200">
+               <RefreshCcw size={32} className={cn("text-amber-500 mb-3", isMissingKey ? "" : "animate-spin-slow")} />
+               <h3 className="text-lg font-black text-slate-900 mb-1 uppercase tracking-tight">
+                {isMissingKey ? "Key Required" : apiError ? "AI Error" : "Low Score"}
+              </h3>
+              <p className="text-slate-500 text-[10px] font-bold mb-4 text-center leading-tight max-w-[200px]">
+                {isMissingKey ? "Set GEMINI_API_KEY in Settings" : apiError ? "AI failed. Self-confirm?" : "Low score. Self-confirm?"}
+              </p>
+              <div className="flex flex-col gap-2 w-full max-w-[180px]">
+                {isMissingKey ? (
+                  <button onClick={() => setIsMissingKey(false)} className="w-full py-3 bg-slate-800 text-white font-black rounded-xl text-[10px] uppercase tracking-widest transition-all">Confirm</button>
+                ) : (
+                  <>
+                    <button onClick={handleManualPass} className="w-full py-3 bg-amber-500 text-white font-black rounded-xl text-[10px] uppercase tracking-widest shadow-lg transition-all">It's Correct!</button>
+                    <button onClick={handleManualFail} className="w-full py-2 bg-white border border-slate-200 text-slate-400 font-bold rounded-xl text-[9px] uppercase tracking-widest transition-all">Rewrite</button>
+                  </>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Floating Attempt Count below square - using relative sizing */}
+        <div className="mt-2 sm:mt-4 flex flex-col items-center gap-1 sm:gap-2 w-full shrink-0">
+          <div className="flex gap-1.5 sm:gap-2">
+            {[0, 1, 2].map((i) => (
+              <div key={i} className={cn("w-6 sm:w-10 h-1 sm:h-1.5 rounded-full transition-all", i < attempts ? "bg-red-500" : "bg-slate-100")} />
+            ))}
+          </div>
+          <p className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Attempts: {attempts}/3</p>
+        </div>
+      </div>
+
+      {/* 3. Bottom Section - Buttons */}
+      <div className="w-full grid grid-cols-2 gap-3 sm:gap-4 shrink-0 mt-4 sm:mt-6">
         <button
           disabled={isAnalyzing || isComplete || isFailed}
           onClick={clearCanvas}
-          className="flex-1 flex items-center justify-center gap-2 px-6 py-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-2xl transition-all disabled:opacity-50"
+          className="px-6 py-4 sm:py-5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-black rounded-2xl transition-all active:scale-95 text-[10px] sm:text-xs uppercase tracking-widest flex items-center justify-center gap-2"
         >
-          <RefreshCcw className="w-5 h-5" />
+          <RefreshCcw className="w-4 h-4" />
           Reset
         </button>
         <button
           disabled={isAnalyzing || isComplete || isFailed}
           onClick={handleSubmit}
-          className="flex-1 flex items-center justify-center gap-2 px-6 py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-2xl shadow-lg shadow-blue-200 transition-all disabled:opacity-50"
+          className="px-6 py-4 sm:py-5 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-2xl shadow-xl shadow-blue-100 transition-all active:scale-95 text-[10px] sm:text-xs uppercase tracking-widest flex items-center justify-center gap-2"
         >
-          {isAnalyzing ? "..." : "Submit"}
+          {isAnalyzing ? "Checking..." : "Submit AI"}
+          <Play size={16} className="fill-current" />
         </button>
       </div>
 
-      {score !== null && !apiError && (
-        <div className={cn(
-          "px-4 py-1 rounded-full font-bold text-sm",
-          score >= 70 ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
-        )}>
-          Score: {score}
-        </div>
-      )}
-
-      {score !== null && score < 70 && !isFailed && !isAnalyzing && (
-        <div className="absolute inset-0 flex items-center justify-center bg-red-600/10 rounded-3xl backdrop-blur-[2px] z-20 pointer-events-none animate-in fade-in duration-300">
-          <div className="bg-white/90 p-8 rounded-[2.5rem] shadow-2xl border-4 border-red-500 flex flex-col items-center gap-4 scale-90 sm:scale-100">
-            <XCircle className="w-16 h-16 text-red-500 animate-bounce" />
-            <div className="text-center">
-              <span className="text-2xl font-black text-red-600 block">Try Again!</span>
-              <span className="text-slate-400 font-bold uppercase tracking-widest text-xs">AI Score: {score}</span>
+      {/* Global State Overlays */}
+      <AnimatePresence>
+        {isComplete && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="absolute inset-0 flex items-center justify-center bg-white/95 backdrop-blur-sm z-[100] animate-in zoom-in duration-300 rounded-3xl">
+            <div className="flex flex-col items-center gap-4 text-green-600">
+              <CheckCircle2 className="w-20 h-20" />
+              <span className="text-3xl font-black uppercase tracking-tighter">Correct!</span>
             </div>
-            <p className="text-slate-500 font-bold text-sm">Write it carefully</p>
-          </div>
-        </div>
-      )}
+          </motion.div>
+        )}
+        
+        {isFailed && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="absolute inset-0 flex items-center justify-center bg-white/95 backdrop-blur-sm z-[100] animate-in zoom-in duration-300 rounded-3xl">
+            <div className="flex flex-col items-center gap-4 text-red-600">
+              <XCircle className="w-20 h-20" />
+              <span className="text-3xl font-black uppercase tracking-tighter">Failed!</span>
+              <p className="text-slate-500 font-bold uppercase tracking-widest text-xs">Turn Skipped</p>
+            </div>
+          </motion.div>
+        )}
 
-      {isComplete && (
-        <div className="absolute inset-0 flex items-center justify-center bg-white/90 rounded-3xl backdrop-blur-sm z-30 animate-in fade-in zoom-in duration-300">
-          <div className="flex flex-col items-center gap-4 text-green-600">
-            <CheckCircle2 className="w-24 h-24" />
-            <span className="text-3xl font-black">Correct!</span>
-          </div>
-        </div>
-      )}
-
-      {isFailed && (
-        <div className="absolute inset-0 flex items-center justify-center bg-white/90 rounded-3xl backdrop-blur-sm z-30 animate-in fade-in zoom-in duration-300">
-          <div className="flex flex-col items-center gap-4 text-red-600">
-            <XCircle className="w-24 h-24" />
-            <span className="text-3xl font-black">Failed!</span>
-            <p className="text-slate-500">Turn skipped</p>
-          </div>
-        </div>
-      )}
+        {score !== null && score < 70 && !isFailed && !isAnalyzing && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 flex items-center justify-center bg-red-600/10 backdrop-blur-[2px] z-[90] pointer-events-none rounded-3xl">
+            <div className="bg-white/95 p-8 rounded-[2.5rem] shadow-2xl border-4 border-red-500 flex flex-col items-center gap-4 scale-90 sm:scale-100">
+              <XCircle className="w-16 h-16 text-red-500 animate-bounce" />
+              <div className="text-center">
+                <span className="text-2xl font-black text-red-600 block">Try Again!</span>
+                <span className="text-slate-400 font-bold uppercase tracking-widest text-xs">AI Score: {score}</span>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
