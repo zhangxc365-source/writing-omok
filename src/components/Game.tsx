@@ -1011,54 +1011,54 @@ export function Game() {
               >
                 <motion.div
                   initial={{ scale: 0.8, y: 50 }} animate={{ scale: 1, y: 0 }}
-                  className="bg-white p-6 sm:p-12 rounded-[2rem] sm:rounded-[3rem] shadow-2xl text-center space-y-8 max-w-4xl w-full"
+                  className="bg-white p-5 sm:p-8 rounded-[2rem] sm:rounded-[3rem] shadow-2xl text-center space-y-4 sm:space-y-6 max-w-2xl w-full max-h-[92dvh] overflow-y-auto no-scrollbar"
                 >
-                  <header className="space-y-4">
-                    <div className="relative inline-block">
-                      <Trophy className={cn("w-24 h-24 sm:w-32 sm:h-32 mx-auto", winner === 'red' ? "text-slate-900" : "text-slate-400")} />
+                  <header className="space-y-2">
+                    <div className="relative inline-block scale-90 sm:scale-100">
+                      <Trophy className={cn("w-16 h-16 sm:w-20 sm:h-20 mx-auto", winner === 'red' ? "text-slate-900" : "text-slate-400")} />
                       <motion.div 
                         animate={{ rotate: 360 }} transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
-                        className="absolute inset-0 border-4 border-dashed border-slate-200 rounded-full -m-4"
+                        className="absolute inset-0 border-4 border-dashed border-slate-200 rounded-full -m-3"
                       />
                     </div>
                     <div>
-                      <h2 className="text-4xl sm:text-6xl font-black text-slate-900">Victory!</h2>
-                      <p className="text-xl sm:text-2xl text-slate-400 font-bold tracking-widest mt-2">
+                      <h2 className="text-2xl sm:text-4xl font-black text-slate-900">Victory!</h2>
+                      <p className="text-xs sm:text-sm text-slate-400 font-bold tracking-widest mt-1">
                         {winner === 'red' ? "BLACK PLAYER WINS" : "WHITE PLAYER WINS"}
                       </p>
                     </div>
                   </header>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8 py-8 border-y-2 border-slate-100">
-                    <div className="flex items-center gap-6 p-6 bg-slate-50 rounded-3xl">
-                      <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center text-3xl font-black shadow-sm">
+                  <div className="grid grid-cols-2 gap-3 py-4 border-y border-slate-100">
+                    <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl">
+                      <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center text-lg font-black shadow-sm shrink-0">
                         {new Set(history.filter(h => mode === 'PK' || (h.char && h.char !== 'AI')).map(h => h.char)).size}
                       </div>
-                      <div className="text-left">
-                        <div className="text-slate-400 font-bold text-xs uppercase tracking-widest">Moves</div>
-                        <div className="text-2xl font-black">{mode === 'AI' ? 'Correct' : 'Total'} Moves</div>
+                      <div className="text-left overflow-hidden">
+                        <div className="text-slate-400 font-bold text-[8px] uppercase tracking-widest truncate">Moves</div>
+                        <div className="text-sm font-black truncate">{mode === 'AI' ? 'Correct' : 'Total'}</div>
                       </div>
                     </div>
-                    <div className="flex items-center gap-6 p-6 bg-slate-50 rounded-3xl">
-                      <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center text-3xl font-black shadow-sm">
+                    <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl">
+                      <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center text-lg font-black shadow-sm shrink-0">
                         {getAccuracy(winner as any)}%
                       </div>
-                      <div className="text-left">
-                        <div className="text-slate-400 font-bold text-xs uppercase tracking-widest">Writing Quality</div>
-                        <div className="text-2xl font-black">Accuracy</div>
+                      <div className="text-left overflow-hidden">
+                        <div className="text-slate-400 font-bold text-[8px] uppercase tracking-widest truncate">Quality</div>
+                        <div className="text-sm font-black truncate">Accuracy</div>
                       </div>
                     </div>
                   </div>
 
                   {/* Summary Table */}
-                  <div className="max-h-60 overflow-y-auto pr-2 custom-scrollbar">
+                  <div className="max-h-48 overflow-y-auto pr-2 custom-scrollbar">
                     <table className="w-full text-left">
-                      <thead className="sticky top-0 bg-white">
-                        <tr className="text-xs font-black text-slate-400 uppercase tracking-widest">
-                          <th className="pb-4">Char</th>
-                          <th className="pb-4">Pinyin</th>
-                          <th className="pb-4">Meaning</th>
-                          <th className="pb-4">Status</th>
+                      <thead className="sticky top-0 bg-white z-10">
+                        <tr className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                          <th className="pb-2">Char</th>
+                          <th className="pb-2">Pinyin</th>
+                          <th className="pb-2">Meaning</th>
+                          <th className="pb-2">Status</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-50">
@@ -1078,19 +1078,19 @@ export function Game() {
                               return false;
                             })
                             .map((h, i) => (
-                            <tr key={i} className="text-lg">
-                              <td className="py-4 font-black">{h.char}</td>
-                              <td className="py-4 text-blue-600 font-bold">{
+                            <tr key={i} className="text-sm sm:text-base">
+                              <td className="py-2 font-black">{h.char}</td>
+                              <td className="py-2 text-blue-600 font-bold">{
                                 processedYCTData.find(w => w.char === h.char)?.pinyin || '-'
                               }</td>
-                              <td className="py-4 text-slate-400 text-sm">{
+                              <td className="py-2 text-slate-400 text-[10px] sm:text-xs leading-tight max-w-[100px] truncate">{
                                 processedYCTData.find(w => w.char === h.char)?.translation || '-'
                               }</td>
-                              <td className="py-4">
+                              <td className="py-2">
                                 {h.success ? (
-                                  <div className="w-8 h-8 bg-green-100 text-green-600 rounded-xl flex items-center justify-center"><Check className="w-5 h-5"/></div>
+                                  <div className="w-6 h-6 bg-green-100 text-green-600 rounded-lg flex items-center justify-center"><Check className="w-4 h-4"/></div>
                                 ) : (
-                                  <div className="w-8 h-8 bg-red-100 text-red-600 rounded-xl flex items-center justify-center"><X className="w-5 h-5"/></div>
+                                  <div className="w-6 h-6 bg-red-100 text-red-600 rounded-lg flex items-center justify-center"><X className="w-4 h-4"/></div>
                                 )}
                               </td>
                             </tr>
@@ -1100,21 +1100,21 @@ export function Game() {
                     </table>
                   </div>
 
-                  <div className="grid grid-cols-3 gap-4">
-                    <button onClick={() => setGameState('START')} className="flex flex-col items-center gap-2 p-6 bg-slate-900 border-2 border-slate-900 text-white rounded-3xl font-black text-xs hover:bg-black transition-all">
-                      <Home />
+                  <div className="grid grid-cols-3 gap-3">
+                    <button onClick={() => setGameState('START')} className="flex flex-col items-center gap-1.5 p-3 bg-slate-900 border-2 border-slate-900 text-white rounded-2xl font-bold text-[10px] hover:bg-black transition-all">
+                      <Home size={18} />
                       Home
                     </button>
-                    <button onClick={() => { resetGame(); setGameState('PLAYING'); }} className="flex flex-col items-center gap-2 p-6 bg-white border-2 border-slate-100 text-slate-900 rounded-3xl font-black text-xs hover:bg-slate-50 transition-all">
-                      <RotateCcw />
+                    <button onClick={() => { resetGame(); setGameState('PLAYING'); }} className="flex flex-col items-center gap-1.5 p-3 bg-white border-2 border-slate-100 text-slate-900 rounded-2xl font-bold text-[10px] hover:bg-slate-50 transition-all">
+                      <RotateCcw size={18} />
                       Restart
                     </button>
                     <button onClick={() => { 
                       const maxLesson = ['yct1', 'yct2', 'yct3', 'yct4'].includes(selectedLevel) ? 12 : 15;
                       setSelectedLesson(prev => Math.min(prev + 1, maxLesson)); 
                       setGameState('PREPARE'); 
-                    }} className="flex flex-col items-center gap-2 p-6 bg-blue-600 border-2 border-blue-600 text-white rounded-3xl font-black text-xs hover:bg-blue-700 transition-all">
-                      <SkipForward />
+                    }} className="flex flex-col items-center gap-1.5 p-3 bg-blue-600 border-2 border-blue-600 text-white rounded-2xl font-bold text-[10px] hover:bg-blue-700 transition-all">
+                      <SkipForward size={18} />
                       Next
                     </button>
                   </div>
