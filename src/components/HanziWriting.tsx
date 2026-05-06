@@ -344,7 +344,27 @@ export function HanziWriting({ word, onComplete, className, showHint, isReview }
               </p>
               <div className="flex flex-col gap-2 w-full max-w-[180px]">
                 {isMissingKey ? (
-                  <button onClick={() => setIsMissingKey(false)} className="w-full py-3 bg-slate-800 text-white font-black rounded-xl text-[10px] uppercase tracking-widest transition-all">Confirm</button>
+                  <>
+                    <button 
+                      onClick={handleManualPass} 
+                      className="w-full py-3 bg-amber-500 text-white font-black rounded-xl text-[10px] uppercase tracking-widest shadow-lg transition-all active:scale-95"
+                    >
+                      Manual: Correct / Зөв
+                    </button>
+                    <button 
+                      onClick={handleManualFail} 
+                      className="w-full py-2 bg-white border border-slate-200 text-slate-400 font-bold rounded-xl text-[9px] uppercase tracking-widest transition-all"
+                    >
+                      Manual: Incorrect / Буруу
+                    </button>
+                    <button 
+                      onClick={() => setIsMissingKey(false)} 
+                      className="w-full py-1 text-slate-300 text-[8px] uppercase font-bold hover:text-slate-400 transition-colors"
+                    >
+                      Back to Drawing
+                    </button>
+                    <p className="text-[8px] text-slate-400 text-center mt-1">API Key Missing. Please self-confirm.</p>
+                  </>
                 ) : (
                   <>
                     <button onClick={handleManualPass} className="w-full py-3 bg-amber-500 text-white font-black rounded-xl text-[10px] uppercase tracking-widest shadow-lg transition-all">It's Correct!</button>
